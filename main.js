@@ -110,13 +110,14 @@ function canvas_updated() {
     right_vector = createVector(prism.right, prism.bottom);
 
     exit_rays_center = createVector(prism.right - a, rays_intersection_y);
-    exit_rays_zone_size = prism.height * 0.0004;
+    exit_rays_zone_size = prism.height * 0.0003;
     prism_exit_zone_start = p5.Vector.lerp(top_vector, exit_rays_center, 1 - exit_rays_zone_size);
     prism_exit_zone_end = p5.Vector.lerp(top_vector, exit_rays_center, 1 + exit_rays_zone_size);
 
     edge_exit_zone_height = prism.height * 0.3;
-    edge_exit_zone_start = createVector(width, rays_edges_y - (edge_exit_zone_height / 2));
-    edge_exit_zone_end = createVector(width, rays_edges_y + (edge_exit_zone_height / 2));
+    edge_exit_zone_x = width + 20;
+    edge_exit_zone_start = createVector(edge_exit_zone_x, rays_edges_y - (edge_exit_zone_height / 2));
+    edge_exit_zone_end = createVector(edge_exit_zone_x, rays_edges_y + (edge_exit_zone_height / 2));
 
     prism_exit_zone_samples = samples_across_vectors(prism_exit_zone_start, prism_exit_zone_end, exit_rays.length);
     edge_exit_zone_samples = samples_across_vectors(edge_exit_zone_start, edge_exit_zone_end, exit_rays.length);
@@ -149,6 +150,31 @@ function samples_across_vectors(vector1, vector2, count) {
     }
 
     return samples;
+}
+
+function line(x1, y1, x2, y2, start_weight, end_weight, steps) {
+    for (let i = 0; i < steps; i++) {
+
+    }
+}
+
+function line_with_varying_weights(x1, y1, x2, y2, start_weight, end_weight) {
+    half_start_weight = start_weight / 2;
+    half_end_weight = end_weight / 2;
+
+    beginShape();
+    
+    vertex(x1 + half_start_weight, y1 - half_start_weight);
+    vertex(x2 + half_end_weight, y2 - half_end_weight);
+    vertex(x2 - half_end_weight, y2 + half_end_weight);
+    vertex(x1 - half_start_weight, y1 + half_start_weight);
+    vertex(x1 + half_start_weight, y1 - half_start_weight);
+
+    endShape();
+}
+
+function line_with_varying_weights_vectors(vector1, vector2, start_weight, end_weight) {
+    line_with_varying_weights(vector1.x, vector1.y, vector2.x, vector2.y, start_weight, end_weight);
 }
 
 // Classes
@@ -195,7 +221,9 @@ class Ray {
 
     draw() {
         stroke(this.color);
-        strokeWeight(20);
-        line_vectors(this.start_point, this.end_point);
+        fill(this.color);
+        let start_weight = height / 300;
+        let end_weight = height / 30;
+        line_with_varying_weights_vectors(this.start_point, this.end_point, start_weight, end_weight);
     }
 }
