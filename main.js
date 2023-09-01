@@ -4,8 +4,7 @@ let prism;
 let rays_edges_y;
 let rays_prism_intersection_y;
 
-let entry_ray_intersection_x;
-let entry_ray_intersection_y;
+let entry_ray_intersection;
 
 let prism_exit_zone_start;
 let prism_exit_zone_end;
@@ -47,7 +46,7 @@ function draw() {
     // Entry ray
     strokeWeight(8);
     stroke(255);
-    line(0, rays_edges_y, entry_ray_intersection_x, entry_ray_intersection_y);
+    line(0, rays_edges_y, entry_ray_intersection.x, entry_ray_intersection.y);
 
     // Exit rays
     exit_rays.forEach((exit_ray) => {
@@ -60,7 +59,7 @@ function draw() {
     // Inner triangle
     noStroke();
     fill(255, 50);
-    triangle(entry_ray_intersection_x, entry_ray_intersection_y, prism_exit_zone_start.x, prism_exit_zone_start.y, prism_exit_zone_end.x, prism_exit_zone_end.y);
+    triangle(entry_ray_intersection.x, entry_ray_intersection.y, prism_exit_zone_start.x, prism_exit_zone_start.y, prism_exit_zone_end.x, prism_exit_zone_end.y);
 
     // Debug stuff
     if (draw_debug_stuff) {
@@ -105,8 +104,7 @@ function canvas_updated() {
     o = (prism.bottom - rays_intersection_y);
     a = o / tan(PI / 3);
 
-    entry_ray_intersection_x = prism.left + a;
-    entry_ray_intersection_y = rays_intersection_y;
+    entry_ray_intersection = createVector(prism.left + a, rays_intersection_y);
 
     top_vector = createVector(prism.center_x, prism.top);
     right_vector = createVector(prism.right, prism.bottom);
