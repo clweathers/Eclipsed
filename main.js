@@ -112,7 +112,7 @@ function canvas_updated() {
     prism_exit_zone_start = p5.Vector.lerp(top_vector, right_vector, 0.3);
     prism_exit_zone_end = p5.Vector.lerp(top_vector, right_vector, 0.6);
 
-    edge_exit_zone_height = prism.height * 0.5;
+    edge_exit_zone_height = prism.height * 0.3;
     edge_exit_zone_start = createVector(width, rays_edges_y - (edge_exit_zone_height / 2));
     edge_exit_zone_end = createVector(width, rays_edges_y + (edge_exit_zone_height / 2));
 
