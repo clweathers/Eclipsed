@@ -1,7 +1,7 @@
 let exit_rays;
 let prism;
 
-let rays_edge_y;
+let rays_edges_y;
 let rays_prism_intersection_y;
 
 let entry_ray_intersection_x;
@@ -50,19 +50,18 @@ function draw() {
     stroke(255);
     line(0, rays_edges_y, entry_ray_intersection_x, entry_ray_intersection_y);
 
+    // Exit rays
+    exit_rays.forEach((exit_ray) => {
+        exit_ray.draw();
+    });
+
     // Prism
-    strokeWeight(4);
     prism.draw();
 
     // Inner triangle
     noStroke();
     fill(255, 50);
     triangle(entry_ray_intersection_x, entry_ray_intersection_y, prism_exit_zone_start.x, prism_exit_zone_start.y, prism_exit_zone_end.x, prism_exit_zone_end.y);
-
-    // Exit rays
-    exit_rays.forEach((exit_ray) => {
-        exit_ray.draw();
-    });
 
     // Debug stuff
     if (draw_debug_stuff) {
@@ -74,14 +73,18 @@ function draw() {
         // Prism exit zone
         stroke(0, 255, 0);
         line_vectors(prism_exit_zone_start, prism_exit_zone_end);
-    }
 
-    noStroke();
-    fill(255, 0, 0);
-    some_samples = samples_across_vectors(prism_exit_zone_start, prism_exit_zone_end, 10);
-    some_samples.forEach((sample) => {
-        circle(sample.x, sample.y, 5);
-    });
+        noStroke();
+        fill(255, 0, 0);
+        some_samples = samples_across_vectors(prism_exit_zone_start, prism_exit_zone_end, 10);
+        some_samples.forEach((sample) => {
+            circle(sample.x, sample.y, 5);
+        });
+
+        // Edge exit zone
+        stroke(255, 0, 0);
+        line_vectors(edge_exit_zone_start, edge_exit_zone_end);
+    }
 }
 
 function canvas_updated() {
@@ -109,11 +112,12 @@ function canvas_updated() {
     top_vector = createVector(prism.center_x, prism.top);
     right_vector = createVector(prism.right, prism.bottom);
 
-    prism_exit_zone_start = p5.Vector.lerp(top_vector, right_vector, 0.2);
-    prism_exit_zone_end = p5.Vector.lerp(top_vector, right_vector, 0.5);
+    prism_exit_zone_start = p5.Vector.lerp(top_vector, right_vector, 0.3);
+    prism_exit_zone_end = p5.Vector.lerp(top_vector, right_vector, 0.6);
 
-    edge_exit_zone_start = createVector(width - 10, 0);
-    edge_exit_zone_end = createVector(width - 10, height);
+    edge_exit_zone_height = prism.height * 0.5;
+    edge_exit_zone_start = createVector(width, rays_edges_y - (edge_exit_zone_height / 2));
+    edge_exit_zone_end = createVector(width, rays_edges_y + (edge_exit_zone_height / 2));
 
     prism_exit_zone_samples = samples_across_vectors(prism_exit_zone_start, prism_exit_zone_end, exit_rays.length);
     edge_exit_zone_samples = samples_across_vectors(edge_exit_zone_start, edge_exit_zone_end, exit_rays.length);
@@ -162,6 +166,7 @@ class Prism {
     draw() {
         fill(0);
         stroke(this.color);
+        strokeWeight(4);
         triangle(this.left, this.bottom, this.center_x, this.top, this.right, this.bottom);
     }
 
@@ -191,6 +196,7 @@ class Ray {
 
     draw() {
         stroke(this.color);
+        strokeWeight(20);
         line_vectors(this.start_point, this.end_point);
     }
 }
