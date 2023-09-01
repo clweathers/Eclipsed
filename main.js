@@ -98,8 +98,8 @@ function canvas_updated() {
     prism.width = prism_height / (sqrt(3) / 2);
 
     // Rays
-    rays_edges_y = prism.center_y + prism_height * .2;
-    rays_intersection_y = prism.center_y - prism_height * .01;
+    rays_edges_y = prism.center_y + prism_height * 0.3;
+    rays_intersection_y = prism.center_y - prism_height * 0.04;
 
     o = (prism.bottom - rays_intersection_y);
     a = o / tan(PI / 3);
