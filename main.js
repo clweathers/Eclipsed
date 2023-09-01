@@ -26,9 +26,8 @@ function setup() {
         saturation = 255;
         brightness = 255;
         ray_color = color(hue, saturation, brightness);
-        x = index * 10 + 10;
-        start = createVector(x, 10);
-        end = createVector(x, 100);
+        start = createVector(0, 0);
+        end = createVector(0, 0);
         ray = new Ray(start, end, ray_color);
         exit_rays.push(ray);
     }
