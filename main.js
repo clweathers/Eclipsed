@@ -38,7 +38,7 @@ function setup() {
 }
 
 function draw() {
-    draw_debug_stuff = true;
+    draw_debug_stuff = false;
 
     // Background
     background(0);
@@ -109,8 +109,10 @@ function canvas_updated() {
     top_vector = createVector(prism.center_x, prism.top);
     right_vector = createVector(prism.right, prism.bottom);
 
-    prism_exit_zone_start = p5.Vector.lerp(top_vector, right_vector, 0.3);
-    prism_exit_zone_end = p5.Vector.lerp(top_vector, right_vector, 0.6);
+    exit_rays_center = createVector(prism.right - a, rays_intersection_y);
+    exit_rays_zone_size = prism.height * 0.0004;
+    prism_exit_zone_start = p5.Vector.lerp(top_vector, exit_rays_center, 1 - exit_rays_zone_size);
+    prism_exit_zone_end = p5.Vector.lerp(top_vector, exit_rays_center, 1 + exit_rays_zone_size);
 
     edge_exit_zone_height = prism.height * 0.3;
     edge_exit_zone_start = createVector(width, rays_edges_y - (edge_exit_zone_height / 2));
