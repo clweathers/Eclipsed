@@ -12,6 +12,8 @@ let prism_exit_zone_end;
 let edge_exit_zone_start;
 let edge_exit_zone_end;
 
+let prism_exit_zone_samples;
+let edge_exit_zone_samples;
 function setup() {
     let prism_color = color(255);
     prism = new Prism(0, 0, 0, 0, prism_color);
