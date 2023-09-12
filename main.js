@@ -21,6 +21,7 @@ function setup() {
     colorMode(HSB);
 
     let number_of_rays = 6;
+    let number_of_rays = 7;
     exit_rays = [];
     for (let index = 0; index < number_of_rays; index++) {
         let hue = index / number_of_rays * 255;
