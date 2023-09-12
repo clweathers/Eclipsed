@@ -18,16 +18,16 @@ function setup() {
 
     colorMode(HSB);
 
-    number_of_rays = 6;
+    let number_of_rays = 6;
     exit_rays = [];
     for (let index = 0; index < number_of_rays; index++) {
-        hue = index / number_of_rays * 255;
-        saturation = 255;
-        brightness = 255;
-        ray_color = color(hue, saturation, brightness);
-        start = createVector(0, 0);
-        end = createVector(0, 0);
-        ray = new Ray(start, end, ray_color);
+        let hue = index / number_of_rays * 255;
+        let saturation = 255;
+        let brightness = 255;
+        let ray_color = color(hue, saturation, brightness);
+        let start = createVector(0, 0);
+        let end = createVector(0, 0);
+        let ray = new Ray(start, end, ray_color);
         exit_rays.push(ray);
     }
 
