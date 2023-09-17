@@ -18,7 +18,7 @@ let edge_exit_zone_samples;
 let exit_particles;
 
 function setup() {
-    colorMode(HSB, 255);
+    colorMode(HSL, 255);
 
     let prism_color = color(255);
     prism = new Prism(0, 0, 0, 0, prism_color);
@@ -28,8 +28,8 @@ function setup() {
     for (let index = 0; index < number_of_rays; index++) {
         let hue = index / number_of_rays * 255;
         let saturation = 255;
-        let brightness = 255;
-        let ray_color = color(hue, saturation, brightness);
+        let lightness = 128;
+        let ray_color = color(hue, saturation, lightness);
         let start = createVector(0, 0);
         let end = createVector(0, 0);
         let ray = new Ray(start, end, ray_color);
@@ -74,7 +74,7 @@ function draw() {
         particle.velocity.setMag(1.5 * random());
         particle.velocity.setHeading(exit_ray.end_point.angleBetween(exit_ray.start_point));
         particle.target_color = exit_ray.color;
-        particle.fadeout_duration = 1000 * random() * 5;
+        particle.fadeout_duration = 5000 * random();
         particle.cooldown_duration = 1000;
         particle.max_age = 8000 * random();
         exit_particles.push(particle);
@@ -255,14 +255,15 @@ class Particle {
     }
 
     draw() {
-        let h = hue(this.target_color);
-        let b = brightness(this.target_color);
-        let white = color(h, 0, b);
-        let cooldown_fraction = norm(this.age, 0, this.cooldown_duration);
-        let current_color = lerpColor(white, this.target_color, cooldown_fraction);
+        let cooldown_fraction = norm(this.age, 0, this.cooldown_duration);        
         let fadeout_start_age = this.max_age - this.fadeout_duration;
-        let alpha = map(this.age, fadeout_start_age, this.max_age, 255, 0, true);
-        current_color.setAlpha(alpha);
+
+        let h = hue(this.target_color);
+        let s = saturation(this.target_color);
+        let l = map(cooldown_fraction, 0, 1, 255, 128);
+        let a = map(this.age, fadeout_start_age, this.max_age, 255, 0, true);
+        let current_color = color(h, s, l, a);
+        
         fill(current_color);
 
         circle(this.position.x, this.position.y, 5);
