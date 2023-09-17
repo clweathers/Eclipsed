@@ -75,8 +75,8 @@ function draw() {
         particle.velocity.setHeading(exit_ray.end_point.angleBetween(exit_ray.start_point));
         particle.target_color = exit_ray.color;
         particle.fadeout_duration = 5000 * random();
-        particle.cooldown_duration = 1000;
-        particle.max_age = 8000 * random();
+        particle.cooldown_duration = 2000;
+        particle.max_age = 7000 * random();
         exit_particles.push(particle);
     }
 
@@ -255,13 +255,14 @@ class Particle {
     }
 
     draw() {
-        let cooldown_fraction = norm(this.age, 0, this.cooldown_duration);        
+        let cooldown_fraction = norm(this.age, 0, this.cooldown_duration);
         let fadeout_start_age = this.max_age - this.fadeout_duration;
+        let fadeout_fraction = norm(this.age, fadeout_start_age, this.max_age);
 
         let h = hue(this.target_color);
         let s = saturation(this.target_color);
-        let l = map(cooldown_fraction, 0, 1, 255, 128);
-        let a = map(this.age, fadeout_start_age, this.max_age, 255, 0, true);
+        let l = map(cooldown_fraction, 0, 1, 255, 128, true);
+        let a = map(fadeout_fraction, 0, 1, 255, 0, true);
         let current_color = color(h, s, l, a);
         
         fill(current_color);
