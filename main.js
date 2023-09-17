@@ -14,14 +14,12 @@ let edge_exit_zone_end;
 
 let prism_exit_zone_samples;
 let edge_exit_zone_samples;
-
-let exit_particles;
-
 function setup() {
     let prism_color = color(255);
     prism = new Prism(0, 0, 0, 0, prism_color);
 
     colorMode(HSB);
+
     let number_of_rays = 7;
     exit_rays = [];
     for (let index = 0; index < number_of_rays; index++) {
@@ -54,6 +52,7 @@ function draw() {
 
     // Exit rays
     exit_rays.forEach((exit_ray) => {
+        exit_ray.draw();
     });
 
     // Prism
@@ -64,14 +63,6 @@ function draw() {
     fill(255, 50);
     triangle(entry_ray_intersection.x, entry_ray_intersection.y, prism_exit_zone_start.x, prism_exit_zone_start.y, prism_exit_zone_end.x, prism_exit_zone_end.y);
 
-    // Exit particles
-    let should_create_particle = random() > 0.2;
-        exit_particles.push(particle);
-    }
-
-    exit_particles.forEach((exit_particle) => {
-    });
-
     // Debug stuff
     if (draw_debug_stuff) {
         // Intersection lines
@@ -81,7 +72,7 @@ function draw() {
 
         // Prism exit zone
         stroke(0, 255, 0);
-        draw_line_between_vectors(prism_exit_zone_start, prism_exit_zone_end);
+        line_vectors(prism_exit_zone_start, prism_exit_zone_end);
 
         noStroke();
         fill(255, 0, 0);
@@ -92,12 +83,13 @@ function draw() {
 
         // Edge exit zone
         stroke(255, 0, 0);
-        draw_line_between_vectors(edge_exit_zone_start, edge_exit_zone_end);
+        line_vectors(edge_exit_zone_start, edge_exit_zone_end);
     }
 }
 
 function canvas_updated() {
     // Calculate canvas center
+    canvas_center_x = width / 2;
     canvas_center_y = height / 2;
 
     // Prism
