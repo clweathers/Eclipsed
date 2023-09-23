@@ -37,17 +37,15 @@ function setup() {
     }
 
     particle_pool = new ParticlePool();
-    particle_pool.set_new_particle_allocation_function(() => {
+    particle_pool.setAllocateNewParticleFunction(() => {
         let particle = new Particle();
         return particle;
     });
-    particle_pool.set_particle_is_ready_for_reuse_function((particle) => {
-        particle_is_ready_for_reuse = particle.is_dead;
-        return particle_is_ready_for_reuse;
+    particle_pool.setParticleIsReadyForReuseFunction((particle) => {
+        particleIsReadyForReuse = particle.is_dead;
+        return particleIsReadyForReuse;
     });
-    particle_pool.set_particle_prepare_for_reuse_function((particle) => {
-
-    });
+    particle_pool.preAllocate(300);
 
     createCanvas(windowWidth, windowHeight);
     canvas_updated();
@@ -75,9 +73,9 @@ function draw() {
     push();
     noStroke();
 
-    let should_create_particle = random() > 0.3;
-    if (should_create_particle) {
-        particle_pool.activate_particle((particle) => {
+    let should_activate_new_particle = random() > 0.3;
+    if (should_activate_new_particle) {
+        particle_pool.activateNewParticle((particle) => {
             let exit_ray = random(exit_rays);
             particle.position = exit_ray.start_point.copy();
             particle.velocity = createVector(1, 1);
@@ -91,7 +89,7 @@ function draw() {
         });
     }
 
-    particle_pool.for_each((particle) => {
+    particle_pool.forEach((particle) => {
         particle.update();
         particle.draw();
     });
@@ -287,86 +285,4 @@ class Particle {
     get is_dead() {
         return this.age > this.max_age;
     }
-}
-
-class ParticlePool {
-
-    // Setup and teardown
-
-    constructor() {
-        this.live_particles = [];
-        this.reusable_particles = [];
-    }
-
-    // Public methods
-
-    // Preallocates the given number of particles to avoid needing to create them "on the fly".
-    preallocate(length) {
-        while (this.all_particles().length < length) {
-            let particle = this.#allocate_new_particle();
-            this.reusable_particles.push(particle);
-        }
-    }
-
-    // "Activates" a new particle (either by reusing one, or allocating a brand new one) and executes the given function on it to set it up.
-    activate_particle(f) {
-        let particle;
-
-        if (this.reusable_particles.length > 0) {
-            particle = this.reusable_particles.pop();
-        }
-        else {
-            particle = this.#allocate_new_particle();
-        }
-
-        this.live_particles.push(particle);
-
-        this.#prepare_particle_for_reuse(particle);
-        f(particle);
-    }
-
-    // Iterate over all the live particles and execute the given function on each of them.
-    // While iterating, this function also takes any particles ready for reuse and moves them into the reuse pool.
-    for_each(f) {
-        for (let i = this.live_particles.length - 1; i >= 0; i--) {
-            let particle = this.live_particles[i];
-
-            if (this.#particle_is_ready_for_reuse(particle)) {
-                this.live_particles.splice(i, 1);
-                this.reusable_particles.push(particle);
-                continue;
-            }
-            else {
-                f(particle);
-            }
-        }
-    }
-
-    // Returns the combination of all live and reusable particles.
-    all_particles() {
-        let all_particles = this.live_particles.concat(this.reusable_particles);
-        return all_particles;
-    }
-
-    // Set the function that will be called anytime a brand new particle needs to be allocated.
-    set_new_particle_allocation_function(f) {
-        this.#allocate_new_particle = f;
-    }
-
-    // Set the function that will be called right before a particle is moved into the live particle pool.
-    // This gets called whether a particle is reused or newly allocated.
-    set_particle_is_ready_for_reuse_function(f) {
-        this.#particle_is_ready_for_reuse = f;
-    }
-
-    // Set the function that will be called to determine if a particle is ready to be moved out of the live particle pool and reused.
-    set_particle_prepare_for_reuse_function(f) {
-        this.#prepare_particle_for_reuse = f;
-    }
-
-    // Assignable functions
-
-    #allocate_new_particle;
-    #particle_is_ready_for_reuse;
-    #prepare_particle_for_reuse;
 }
