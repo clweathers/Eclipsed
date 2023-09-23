@@ -42,7 +42,7 @@ function setup() {
         return particle;
     });
     particle_pool.setParticleIsReadyForReuseFunction((particle) => {
-        particleIsReadyForReuse = particle.is_dead;
+        let particleIsReadyForReuse = particle.is_dead;
         return particleIsReadyForReuse;
     });
     particle_pool.preAllocate(300);
