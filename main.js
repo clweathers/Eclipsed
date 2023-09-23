@@ -65,9 +65,9 @@ function draw() {
     pop();
 
     // Exit rays
-    exit_rays.forEach((exit_ray) => {
-        //exit_ray.draw();
-    });
+    // exit_rays.forEach((exit_ray) => {
+    //     exit_ray.draw();
+    // });
 
     // Particles
     push();
@@ -78,9 +78,8 @@ function draw() {
         particle_pool.activateNewParticle((particle) => {
             let exit_ray = random(exit_rays);
             particle.position = exit_ray.start_point.copy();
-            particle.velocity = createVector(1, 1);
+            particle.velocity = p5.Vector.sub(exit_ray.end_point, exit_ray.start_point);
             particle.velocity.setMag(random(0.7, 1.5));
-            particle.velocity.setHeading(exit_ray.end_point.angleBetween(exit_ray.start_point));
             particle.target_color = exit_ray.color;
             particle.fadeout_duration = random(800, 1200);
             particle.cooldown_duration = random(800, 1200);
