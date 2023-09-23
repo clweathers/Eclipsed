@@ -75,18 +75,18 @@ function draw() {
     push();
     noStroke();
 
-    let should_create_particle = random() > 0.5;
+    let should_create_particle = random() > 0.3;
     if (should_create_particle) {
         particle_pool.activate_particle((particle) => {
             let exit_ray = random(exit_rays);
             particle.position = exit_ray.start_point.copy();
-            particle.velocity = createVector(0.5, 0.5);
-            particle.velocity.setMag(1.5 * random());
+            particle.velocity = createVector(1, 1);
+            particle.velocity.setMag(random(0.7, 1.5));
             particle.velocity.setHeading(exit_ray.end_point.angleBetween(exit_ray.start_point));
             particle.target_color = exit_ray.color;
-            particle.fadeout_duration = 1000 * random();
-            particle.cooldown_duration = 1000;
-            particle.max_age = 7000;
+            particle.fadeout_duration = random(800, 1200);
+            particle.cooldown_duration = random(800, 1200);
+            particle.max_age = random(5000, 7500);
             particle.birth_time = millis();
         });
     }
