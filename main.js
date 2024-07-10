@@ -73,18 +73,39 @@ function draw() {
     push();
     noStroke();
 
-    let should_activate_new_particle = random() > 0.3;
+    let should_activate_new_particle = random() > 0.1;
     if (should_activate_new_particle) {
         particle_pool.activateNewParticle((particle) => {
             let exit_ray = random(exit_rays);
             particle.position = exit_ray.start_point.copy();
             particle.velocity = p5.Vector.sub(exit_ray.end_point, exit_ray.start_point);
-            particle.velocity.setMag(random(0.7, 1.5));
+            particle.velocity.setMag(random(2.9, 3.9));
             particle.target_color = exit_ray.color;
             particle.fadeout_duration = random(800, 1200);
-            particle.cooldown_duration = random(800, 1200);
+            particle.cooldown_duration = random(900, 1300);
             particle.max_age = random(5000, 7500);
             particle.birth_time = millis();
+
+            //particle.headingSpread = 0;                                     // Perfect lines
+            //particle.headingSpread = randomGaussian(0, 0.02) * PI / 30000;  // Subtle taper at the end
+            particle.headingSpread = randomGaussian(0, 0.02) * PI / 20000;  // Subtle taper at the end
+            //particle.headingSpread = randomGaussian(0, 0.02) * PI / 2000;   // Like confetti blowing around a fan
+        });
+        particle_pool.activateNewParticle((particle) => {
+            let exit_ray = random(exit_rays);
+            particle.position = exit_ray.start_point.copy();
+            particle.velocity = p5.Vector.sub(exit_ray.end_point, exit_ray.start_point);
+            particle.velocity.setMag(random(2.9, 3.9));
+            particle.target_color = exit_ray.color;
+            particle.fadeout_duration = random(800, 1200);
+            particle.cooldown_duration = random(900, 1300);
+            particle.max_age = random(5000, 7500);
+            particle.birth_time = millis();
+
+            //particle.headingSpread = 0;                                     // Perfect lines
+            //particle.headingSpread = randomGaussian(0, 0.02) * PI / 30000;  // Subtle taper at the end
+            particle.headingSpread = randomGaussian(0, 0.02) * PI / 20000;  // Subtle taper at the end
+            //particle.headingSpread = randomGaussian(0, 0.02) * PI / 2000;   // Like confetti blowing around a fan
         });
     }
 
@@ -255,9 +276,18 @@ class Particle {
         //this.cooldown_duration = 0;
         //this.max_age = 0;
         //this.birth_time = millis();
+
+        this.friction = 0.11;
     }
 
     update() {
+        // Apply friction to velocity
+        var frictionVelocityDelta = this.friction / deltaTime;
+        frictionVelocityDelta = max(frictionVelocityDelta, 0);
+        this.velocity.setMag(this.velocity.mag() - frictionVelocityDelta);
+
+        this.velocity.setHeading(this.velocity.heading() + (this.headingSpread * this.age * 0.07));
+        
         this.position.add(this.velocity);
     }
 
@@ -274,7 +304,7 @@ class Particle {
         
         fill(current_color);
 
-        circle(this.position.x, this.position.y, 5);
+        circle(this.position.x, this.position.y, 4);
     }
 
     get age() {
