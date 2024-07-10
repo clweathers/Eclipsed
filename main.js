@@ -86,8 +86,8 @@ function draw() {
             particle.max_age = random(5000, 7500);
             particle.birth_time = millis();
 
-            particle.headingSpread = 0;                                     // Perfect lines
-            particle.headingSpread = randomGaussian(0, 0.02) * PI / 30000;  // Subtle taper at the end
+            //particle.headingSpread = 0;                                     // Perfect lines
+            //particle.headingSpread = randomGaussian(0, 0.02) * PI / 30000;  // Subtle taper at the end
             particle.headingSpread = randomGaussian(0, 0.02) * PI / 20000;  // Subtle taper at the end
             //particle.headingSpread = randomGaussian(0, 0.02) * PI / 2000;   // Like confetti blowing around a fan
         });
