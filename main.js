@@ -73,16 +73,16 @@ function draw() {
     push();
     noStroke();
 
-    let should_activate_new_particle = random() > 0.3;
+    let should_activate_new_particle = random() > 0.1;
     if (should_activate_new_particle) {
         particle_pool.activateNewParticle((particle) => {
             let exit_ray = random(exit_rays);
             particle.position = exit_ray.start_point.copy();
             particle.velocity = p5.Vector.sub(exit_ray.end_point, exit_ray.start_point);
-            particle.velocity.setMag(random(0.7, 1.5));
+            particle.velocity.setMag(random(2.9, 3.9));
             particle.target_color = exit_ray.color;
             particle.fadeout_duration = random(800, 1200);
-            particle.cooldown_duration = random(800, 1200);
+            particle.cooldown_duration = random(900, 1300);
             particle.max_age = random(5000, 7500);
             particle.birth_time = millis();
         });
@@ -255,9 +255,16 @@ class Particle {
         //this.cooldown_duration = 0;
         //this.max_age = 0;
         //this.birth_time = millis();
+
+        this.friction = 0.11;
     }
 
     update() {
+        // Apply friction to velocity
+        var frictionVelocityDelta = this.friction / deltaTime;
+        frictionVelocityDelta = max(frictionVelocityDelta, 0);
+        this.velocity.setMag(this.velocity.mag() - frictionVelocityDelta);
+        
         this.position.add(this.velocity);
     }
 
