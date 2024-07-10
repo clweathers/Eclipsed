@@ -85,6 +85,11 @@ function draw() {
             particle.cooldown_duration = random(900, 1300);
             particle.max_age = random(5000, 7500);
             particle.birth_time = millis();
+
+            particle.headingSpread = 0;                                     // Perfect lines
+            particle.headingSpread = randomGaussian(0, 0.02) * PI / 30000;  // Subtle taper at the end
+            particle.headingSpread = randomGaussian(0, 0.02) * PI / 20000;  // Subtle taper at the end
+            //particle.headingSpread = randomGaussian(0, 0.02) * PI / 2000;   // Like confetti blowing around a fan
         });
     }
 
@@ -264,6 +269,8 @@ class Particle {
         var frictionVelocityDelta = this.friction / deltaTime;
         frictionVelocityDelta = max(frictionVelocityDelta, 0);
         this.velocity.setMag(this.velocity.mag() - frictionVelocityDelta);
+
+        this.velocity.setHeading(this.velocity.heading() + (this.headingSpread * this.age * 0.07));
         
         this.position.add(this.velocity);
     }
