@@ -1,62 +1,48 @@
-let exit_rays;
+// Prism
 let prism;
 
-let rays_edges_y;
-let rays_prism_intersection_y;
-
-let entry_ray_intersection;
-
-let prism_exit_zone_start;
-let prism_exit_zone_end;
-
-let edge_exit_zone_start;
-let edge_exit_zone_end;
-
-let prism_exit_zone_samples;
-let edge_exit_zone_samples;
-
+// Particle pool
 let particle_pool;
 
-// The zone on the right side of the prism where the particles emit.
+// Entry ray
+let entry_ray_start_point;
+let entry_ray_end_point;
+
+// Particle start zone
+// (The zone on the right side of the prism where the particles emit from.)
 let particle_start_zone_bottom;
 let particle_start_zone_top;
 
-// The zone on the right edge of the window where the particles head toward.
+// Particle end zone
+// (The zone on the right edge of the window where the particles head toward.)
 let particle_end_zone_bottom;
 let particle_end_zone_top;
 
+// Reference values
 const reference_width = 1900;
 const reference_height = 500;
 const reference_aspect_ratio = reference_width / reference_height;
 
+// Focus zone
 let focus_zone_x = 0;
 let focus_zone_y = 0;
 let focus_zone_width = 0;
 let focus_zone_height = 0;
 
+// Scaling
 let scale_factor = 0;
 
+// Debug
 let debug_mode = false;
 
 function setup() {
     colorMode(HSL, 255);
 
-    let prism_color = color(255);
+    // Prism
+    const prism_color = color(255);
     prism = new Prism(0, 0, 0, 0, prism_color);
 
-    let number_of_rays = 30;
-    exit_rays = [];
-    for (let index = 0; index < number_of_rays; index++) {
-        let hue = index / number_of_rays * 255;
-        let saturation = 255;
-        let lightness = 128;
-        let ray_color = color(hue, saturation, lightness);
-        let start = createVector(0, 0);
-        let end = createVector(0, 0);
-        let ray = new Ray(start, end, ray_color);
-        exit_rays.push(ray);
-    }
-
+    // Particle pool
     particle_pool = new ParticlePool();
     particle_pool.setAllocateNewParticleFunction(() => {
         let particle = new Particle();
@@ -68,11 +54,17 @@ function setup() {
     });
     particle_pool.preAllocate(600);
 
+    // Entry ray points
+    entry_ray_start_point = createVector(0, 0);
+    entry_ray_end_point = createVector(0, 0);
+
+    // Particle start and end zones
     particle_start_zone_bottom = createVector(0, 0);
     particle_start_zone_top = createVector(0, 0);
     particle_end_zone_bottom = createVector(0, 0);
     particle_end_zone_top = createVector(0, 0);
 
+    // Canvas
     createCanvas(windowWidth, windowHeight);
     canvas_updated();
 }
@@ -86,86 +78,16 @@ function draw() {
     }
 
     // Entry ray
-    push();
-    strokeWeight(8 * scale_factor);
-    stroke(255);
-    line(0, rays_edges_y, entry_ray_intersection.x, entry_ray_intersection.y);
-    pop();
-
-    // Exit rays
-    // exit_rays.forEach((exit_ray) => {
-    //     exit_ray.draw();
-    // });
+    draw_entry_ray();
 
     // Particles
-    push();
-    noStroke();
-
-    let should_activate_new_particle = random() > 0.1;
-    if (should_activate_new_particle) {
-        let particles_to_create = 2;
-        for (let particle_index = 0; particle_index < particles_to_create; particle_index++) {
-            particle_pool.activateNewParticle((particle) => {
-                let exit_ray = random(exit_rays);
-                particle.position = exit_ray.start_point.copy();
-                particle.velocity = p5.Vector.sub(exit_ray.end_point, exit_ray.start_point);
-                particle.velocity.setMag(random(2.9, 3.9) * scale_factor);
-                particle.target_color = exit_ray.color;
-                particle.fadeout_duration = random(800, 1200) * scale_factor;
-                particle.cooldown_duration = random(900, 1300) * scale_factor;
-                particle.max_age = random(4500, 6000) * scale_factor;
-                particle.birth_time = millis();
-    
-                //particle.headingSpread = 0;                                     // Perfect lines
-                //particle.headingSpread = randomGaussian(0, 0.02) * PI / 30000;  // Subtle taper at the end
-                particle.headingSpread = randomGaussian(0, PI / 24) / 20000;  // Subtle taper at the end
-                particle.headingSpread = randomGaussian(0, PI / 30) / 20000;  // Subtle taper at the end
-                //particle.headingSpread = randomGaussian(0, 0.02) * PI / 2000;   // Like confetti blowing around a fan
-            });
-        }
-    }
-
-    particle_pool.forEach((particle) => {
-        particle.update();
-        particle.draw();
-    });
-
-    pop();
+    draw_particles();
 
     // Prism
-    push();
     prism.draw();
-    pop();
 
     // Inner triangle
-    push();
-    noStroke();
-    fill(255, 20);
-    triangle(entry_ray_intersection.x, entry_ray_intersection.y, prism_exit_zone_start.x, prism_exit_zone_start.y, prism_exit_zone_end.x, prism_exit_zone_end.y);
-    pop();
-
-    // Leftover debug stuff that currently doesn't work...
-    if (false) {
-        // Intersection lines
-        stroke(255, 50);
-        line(0, rays_edges_y, 10000, rays_edges_y);
-        line(0, rays_intersection_y, 10000, rays_intersection_y);
-
-        // Prism exit zone
-        stroke(0, 255, 0);
-        draw_line_between_vectors(prism_exit_zone_start, prism_exit_zone_end);
-
-        noStroke();
-        fill(255, 0, 0);
-        some_samples = samples_across_vectors(prism_exit_zone_start, prism_exit_zone_end, 10);
-        some_samples.forEach((sample) => {
-            circle(sample.x, sample.y, 5);
-        });
-
-        // Edge exit zone
-        stroke(255, 0, 0);
-        draw_line_between_vectors(edge_exit_zone_start, edge_exit_zone_end);
-    }
+    draw_inner_triangle();
 
     if (debug_mode) {
         draw_particle_zones();
@@ -202,38 +124,34 @@ function canvas_updated() {
     prism.height = prism_height;
     prism.width = prism_height / (sqrt(3) / 2);
 
-    // Rays
-    rays_edges_y = prism.center_y + prism_height * 0.3;
-    rays_prism_intersection_y = prism.center_y - prism_height * 0.04;
+    // Entry ray start point
+    // (Amount is from the top to the bottom)
+    const entry_ray_start_point_amount = 0.6;
+    entry_ray_start_point.x = 0;
+    entry_ray_start_point.y = entry_ray_start_point_amount;
+    entry_ray_start_point.y = lerp(focus_zone_y, focus_zone_y + focus_zone_height, entry_ray_start_point_amount);
 
-    let o = (prism.bottom - rays_prism_intersection_y);
-    let a = o / tan(PI / 3);
+    // Entry ray end point
+    // (The point where the entry ray intersects the left side of the prism.)
+    // (Amount is from the top to the bottom)
+    const entry_ray_end_point_amount = 0.48;
+    entry_ray_end_point.x = lerp(prism.center_x, prism.left, entry_ray_end_point_amount);
+    entry_ray_end_point.y = lerp(prism.top, prism.bottom, entry_ray_end_point_amount);
 
-    entry_ray_intersection = createVector(prism.left + a, rays_prism_intersection_y);
+    // Particle start zone
+    // (Where the particles emit from)
+    // (Amounts are from the top to the bottom)
+    const particle_start_zone_top_amount = 0.34;
+    const particle_start_zone_bottom_amount = 0.57;
 
-    let top_vector = createVector(prism.center_x, prism.top);
-    let right_vector = createVector(prism.right, prism.bottom);
+    particle_start_zone_top.x = lerp(prism.center_x, prism.right, particle_start_zone_top_amount);
+    particle_start_zone_top.y = lerp(prism.top, prism.bottom, particle_start_zone_top_amount);
 
-    let exit_rays_center = createVector(prism.right - a, rays_prism_intersection_y);
-    let exit_rays_zone_size = prism.height * 0.001;
-    prism_exit_zone_start = p5.Vector.lerp(top_vector, exit_rays_center, 1 - exit_rays_zone_size);
-    prism_exit_zone_end = p5.Vector.lerp(top_vector, exit_rays_center, 1 + exit_rays_zone_size);
+    particle_start_zone_bottom.x = lerp(prism.center_x, prism.right, particle_start_zone_bottom_amount);
+    particle_start_zone_bottom.y = lerp(prism.top, prism.bottom, particle_start_zone_bottom_amount);
 
-    let edge_exit_zone_height = prism.height * 0.4;
-    edge_exit_zone_start = createVector(width, rays_edges_y - (edge_exit_zone_height / 2));
-    edge_exit_zone_end = createVector(width, rays_edges_y + (edge_exit_zone_height / 2));
-
-    prism_exit_zone_samples = samples_across_vectors(prism_exit_zone_start, prism_exit_zone_end, exit_rays.length);
-    edge_exit_zone_samples = samples_across_vectors(edge_exit_zone_start, edge_exit_zone_end, exit_rays.length);
-
-    exit_rays.forEach((exit_ray, index) => {
-        exit_ray.start_point = prism_exit_zone_samples[index];
-        exit_ray.end_point = edge_exit_zone_samples[index];
-    });
-
-    // Particle start zone (where the particles emit)
-
-    // Particle end zone (where the particles head towards)
+    // Particle end zone
+    // (Where the particles head towards)
     const particle_end_zone_height = prism.height * 0.4;
     const particle_end_zone_x = width;
     const particle_end_zone_center_y = prism.center_y + prism_height * 0.3;
@@ -275,6 +193,70 @@ function samples_across_vectors(vector1, vector2, count) {
     }
 
     return samples;
+}
+
+// Draw functions
+
+function draw_entry_ray() {
+    push();
+
+    strokeWeight(8 * scale_factor);
+    stroke(255);
+
+    draw_line_between_vectors(entry_ray_start_point, entry_ray_end_point);
+    
+    pop();
+}
+
+function draw_particles() {
+    push();
+
+    noStroke();
+
+    let should_activate_new_particle = random() > 0.1;
+    if (should_activate_new_particle) {
+        let particles_to_create = 2;
+        for (let particle_index = 0; particle_index < particles_to_create; particle_index++) {
+            particle_pool.activateNewParticle((particle) => {
+                const random_amount = random();
+                const start_point = p5.Vector.lerp(particle_start_zone_top, particle_start_zone_bottom, random_amount);
+                const end_point = p5.Vector.lerp(particle_end_zone_top, particle_end_zone_bottom, random_amount);
+
+                particle.position = start_point;
+                particle.velocity = p5.Vector.sub(end_point, start_point);
+                particle.velocity.setMag(random(2.9, 3.9) * scale_factor);
+                particle.target_color = color(random_amount * 255, 255, 128);;
+                particle.fadeout_duration = random(800, 1200) * scale_factor;
+                particle.cooldown_duration = random(900, 1300) * scale_factor;
+                particle.max_age = random(4500, 6000) * scale_factor;
+                particle.birth_time = millis();
+    
+                //particle.headingSpread = 0;                                     // Perfect lines
+                //particle.headingSpread = randomGaussian(0, 0.02) * PI / 30000;  // Subtle taper at the end
+                particle.headingSpread = randomGaussian(0, PI / 24) / 20000;  // Subtle taper at the end
+                particle.headingSpread = randomGaussian(0, PI / 30) / 20000;  // Subtle taper at the end
+                //particle.headingSpread = randomGaussian(0, 0.02) * PI / 2000;   // Like confetti blowing around a fan
+            });
+        }
+    }
+
+    particle_pool.forEach((particle) => {
+        particle.update();
+        particle.draw();
+    });
+
+    pop();
+}
+
+function draw_inner_triangle() {
+    push();
+
+    noStroke();
+    fill(255, 20);
+
+    triangle(entry_ray_end_point.x, entry_ray_end_point.y, particle_start_zone_top.x, particle_start_zone_top.y, particle_start_zone_bottom.x, particle_start_zone_bottom.y);
+
+    pop();
 }
 
 // Debug functions
