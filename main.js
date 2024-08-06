@@ -17,6 +17,19 @@ let edge_exit_zone_samples;
 
 let particle_pool;
 
+const reference_width = 1900;
+const reference_height = 500;
+const reference_aspect_ratio = reference_width / reference_height;
+
+let focus_zone_x = 0;
+let focus_zone_y = 0;
+let focus_zone_width = 0;
+let focus_zone_height = 0;
+
+let scale_factor = 0;
+
+let debug_mode = false;
+
 function setup() {
     colorMode(HSL, 255);
 
@@ -45,21 +58,23 @@ function setup() {
         let particleIsReadyForReuse = particle.is_dead;
         return particleIsReadyForReuse;
     });
-    particle_pool.preAllocate(300);
+    particle_pool.preAllocate(600);
 
     createCanvas(windowWidth, windowHeight);
     canvas_updated();
 }
 
 function draw() {
-    draw_debug_stuff = false;
-
     // Background
     background(0);
 
+    if (debug_mode) {
+        draw_focus_zone();
+    }
+
     // Entry ray
     push();
-    strokeWeight(8);
+    strokeWeight(8 * scale_factor);
     stroke(255);
     line(0, rays_edges_y, entry_ray_intersection.x, entry_ray_intersection.y);
     pop();
@@ -81,16 +96,17 @@ function draw() {
                 let exit_ray = random(exit_rays);
                 particle.position = exit_ray.start_point.copy();
                 particle.velocity = p5.Vector.sub(exit_ray.end_point, exit_ray.start_point);
-                particle.velocity.setMag(random(2.9, 3.9));
+                particle.velocity.setMag(random(2.9, 3.9) * scale_factor);
                 particle.target_color = exit_ray.color;
-                particle.fadeout_duration = random(800, 1200);
-                particle.cooldown_duration = random(900, 1300);
-                particle.max_age = random(5000, 7500);
+                particle.fadeout_duration = random(800, 1200) * scale_factor;
+                particle.cooldown_duration = random(900, 1300) * scale_factor;
+                particle.max_age = random(4500, 6000) * scale_factor;
                 particle.birth_time = millis();
     
                 //particle.headingSpread = 0;                                     // Perfect lines
                 //particle.headingSpread = randomGaussian(0, 0.02) * PI / 30000;  // Subtle taper at the end
-                particle.headingSpread = randomGaussian(0, 0.02) * PI / 20000;  // Subtle taper at the end
+                particle.headingSpread = randomGaussian(0, PI / 24) / 20000;  // Subtle taper at the end
+                particle.headingSpread = randomGaussian(0, PI / 30) / 20000;  // Subtle taper at the end
                 //particle.headingSpread = randomGaussian(0, 0.02) * PI / 2000;   // Like confetti blowing around a fan
             });
         }
@@ -115,8 +131,8 @@ function draw() {
     triangle(entry_ray_intersection.x, entry_ray_intersection.y, prism_exit_zone_start.x, prism_exit_zone_start.y, prism_exit_zone_end.x, prism_exit_zone_end.y);
     pop();
 
-    // Debug stuff
-    if (draw_debug_stuff) {
+    // Leftover debug stuff that currently doesn't work...
+    if (false) {
         // Intersection lines
         stroke(255, 50);
         line(0, rays_edges_y, 10000, rays_edges_y);
@@ -137,15 +153,35 @@ function draw() {
         stroke(255, 0, 0);
         draw_line_between_vectors(edge_exit_zone_start, edge_exit_zone_end);
     }
+
+    if (debug_mode) {
+        display_debug_info();
+    }
 }
 
 function canvas_updated() {
+    const landscapeOrientation = (width / height > reference_aspect_ratio);
+    if (landscapeOrientation) {
+        focus_zone_width = round(height * reference_aspect_ratio);
+        focus_zone_height = height;
+        focus_zone_x = round((width - focus_zone_width) / 2.0);
+        focus_zone_y = 0;
+        scale_factor = focus_zone_height / reference_height;
+    }
+    else {
+        focus_zone_width = width;
+        focus_zone_height = round(width / reference_aspect_ratio);
+        focus_zone_x = 0;
+        focus_zone_y = round((height - focus_zone_height) / 2.0);
+        scale_factor = focus_zone_width / reference_width;
+    }
+
     // Calculate canvas center
     let canvas_center_x = width / 2;
     let canvas_center_y = height / 2;
 
     // Prism
-    let prism_height = height / 2;
+    let prism_height = focus_zone_height / 2;
     prism.center_x = canvas_center_x;
     prism.center_y = canvas_center_y;
     prism.height = prism_height;
@@ -188,6 +224,14 @@ function windowResized() {
     canvas_updated();
 }
 
+// Keyboard
+
+function keyPressed() {
+    if (key === 'd' || key === 'D') {
+        debug_mode = !debug_mode;
+    }
+}
+
 // Utility functions
 
 function draw_line_between_vectors(vector1, vector2) {
@@ -205,6 +249,39 @@ function samples_across_vectors(vector1, vector2, count) {
     return samples;
 }
 
+// Debug functions
+
+function draw_focus_zone() {
+    push();
+
+    fill(30);
+    rect(focus_zone_x, focus_zone_y, focus_zone_width, focus_zone_height);
+
+    pop();
+}
+
+function display_debug_info() {
+    let window_dimensions_string = "";
+    window_dimensions_string = `window:\n w: ${width}\n h: ${height}\n\n`;
+
+    let focus_zone_string = "";
+    focus_zone_string = `focus zone:\n x: ${focus_zone_x}\n y: ${focus_zone_y}\n w: ${focus_zone_width}\n h: ${focus_zone_height}\n\n`;
+
+    let particle_status_string = "";
+    particle_status_string = `particles:\n ${particle_pool.poolStatusString()}\n\n`;
+
+    const debug_info_string = `${window_dimensions_string}${focus_zone_string}${particle_status_string}`;
+
+    push();
+    
+    fill(255);
+    textAlign(LEFT, TOP);
+    textFont("Menlo");
+    text(debug_info_string, 0, 0);
+
+    pop();
+}
+
 // Classes
 
 class Prism {
@@ -219,7 +296,7 @@ class Prism {
     draw() {
         fill(0);
         stroke(this.color);
-        strokeWeight(4);
+        strokeWeight(4 * scale_factor);
         triangle(this.left, this.bottom, this.center_x, this.top, this.right, this.bottom);
     }
 
@@ -290,8 +367,7 @@ class Particle {
         let current_color = color(h, s, l, a);
         
         fill(current_color);
-
-        circle(this.position.x, this.position.y, 4);
+        circle(this.position.x, this.position.y, 4 * scale_factor);
     }
 
     get age() {
