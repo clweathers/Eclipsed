@@ -17,6 +17,14 @@ let edge_exit_zone_samples;
 
 let particle_pool;
 
+// The zone on the right side of the prism where the particles emit.
+let particle_start_zone_bottom;
+let particle_start_zone_top;
+
+// The zone on the right edge of the window where the particles head toward.
+let particle_end_zone_bottom;
+let particle_end_zone_top;
+
 const reference_width = 1900;
 const reference_height = 500;
 const reference_aspect_ratio = reference_width / reference_height;
@@ -59,6 +67,11 @@ function setup() {
         return particleIsReadyForReuse;
     });
     particle_pool.preAllocate(600);
+
+    particle_start_zone_bottom = createVector(0, 0);
+    particle_start_zone_top = createVector(0, 0);
+    particle_end_zone_bottom = createVector(0, 0);
+    particle_end_zone_top = createVector(0, 0);
 
     createCanvas(windowWidth, windowHeight);
     canvas_updated();
@@ -155,11 +168,17 @@ function draw() {
     }
 
     if (debug_mode) {
+        draw_particle_zones();
         display_debug_info();
     }
 }
 
 function canvas_updated() {
+    // Canvas center
+    const canvas_center_x = width / 2;
+    const canvas_center_y = height / 2;
+
+    // Focus zone
     const landscapeOrientation = (width / height > reference_aspect_ratio);
     if (landscapeOrientation) {
         focus_zone_width = round(height * reference_aspect_ratio);
@@ -176,12 +195,8 @@ function canvas_updated() {
         scale_factor = focus_zone_width / reference_width;
     }
 
-    // Calculate canvas center
-    let canvas_center_x = width / 2;
-    let canvas_center_y = height / 2;
-
     // Prism
-    let prism_height = focus_zone_height / 2;
+    const prism_height = focus_zone_height / 2;
     prism.center_x = canvas_center_x;
     prism.center_y = canvas_center_y;
     prism.height = prism_height;
@@ -215,6 +230,19 @@ function canvas_updated() {
         exit_ray.start_point = prism_exit_zone_samples[index];
         exit_ray.end_point = edge_exit_zone_samples[index];
     });
+
+    // Particle start zone (where the particles emit)
+
+    // Particle end zone (where the particles head towards)
+    const particle_end_zone_height = prism.height * 0.4;
+    const particle_end_zone_x = width;
+    const particle_end_zone_center_y = prism.center_y + prism_height * 0.3;
+
+    particle_end_zone_top.x = particle_end_zone_x;
+    particle_end_zone_top.y = particle_end_zone_center_y - (particle_end_zone_height / 2);
+
+    particle_end_zone_bottom.x = particle_end_zone_x;
+    particle_end_zone_bottom.y = particle_end_zone_center_y + (particle_end_zone_height / 2);
 }
 
 // Resize handling
@@ -260,6 +288,18 @@ function draw_focus_zone() {
     pop();
 }
 
+function draw_particle_zones() {
+    push();
+
+    stroke(255, 255, 128);
+    strokeWeight(4);
+
+    draw_line_between_vectors(particle_start_zone_top, particle_start_zone_bottom);
+    draw_line_between_vectors(particle_end_zone_top, particle_end_zone_bottom);
+
+    pop();
+}
+
 function display_debug_info() {
     let window_dimensions_string = "";
     window_dimensions_string = `window:\n w: ${width}\n h: ${height}\n\n`;
@@ -294,10 +334,14 @@ class Prism {
     }
 
     draw() {
+        push();
+
         fill(0);
         stroke(this.color);
         strokeWeight(4 * scale_factor);
         triangle(this.left, this.bottom, this.center_x, this.top, this.right, this.bottom);
+
+        pop();
     }
 
     get bottom() {
