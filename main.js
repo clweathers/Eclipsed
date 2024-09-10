@@ -22,6 +22,7 @@ let particle_end_zone_top;
 const reference_width = 1900;
 const reference_height = 500;
 const reference_aspect_ratio = reference_width / reference_height;
+const minimum_aspect_ratio = 8 / 3;
 
 // Focus zone
 let focus_zone_x = 0;
@@ -101,21 +102,24 @@ function canvas_updated() {
     const canvas_center_y = height / 2;
 
     // Focus zone
-    const landscapeOrientation = (width / height > reference_aspect_ratio);
-    if (landscapeOrientation) {
-        focus_zone_width = round(height * reference_aspect_ratio);
+    // TODO: There's some more work to do on the math in this section.
+    const focus_zone_aspect_ratio = max(width / height, minimum_aspect_ratio);
+
+    const landscape_orientation = (width / height > reference_aspect_ratio);
+    if (landscape_orientation) {
+        focus_zone_width = round(height * focus_zone_aspect_ratio);
         focus_zone_height = height;
         focus_zone_x = round((width - focus_zone_width) / 2.0);
         focus_zone_y = 0;
-        scale_factor = focus_zone_height / reference_height;
     }
     else {
         focus_zone_width = width;
-        focus_zone_height = round(width / reference_aspect_ratio);
+        focus_zone_height = round(width / focus_zone_aspect_ratio);
         focus_zone_x = 0;
         focus_zone_y = round((height - focus_zone_height) / 2.0);
-        scale_factor = focus_zone_width / reference_width;
     }
+
+    scale_factor = focus_zone_height / reference_height;
 
     // Prism
     const prism_height = focus_zone_height / 2;
@@ -287,7 +291,7 @@ function display_debug_info() {
     window_dimensions_string = `window:\n w: ${width}\n h: ${height}\n\n`;
 
     let focus_zone_string = "";
-    focus_zone_string = `focus zone:\n x: ${focus_zone_x}\n y: ${focus_zone_y}\n w: ${focus_zone_width}\n h: ${focus_zone_height}\n\n`;
+    focus_zone_string = `focus zone:\n x: ${focus_zone_x}\n y: ${focus_zone_y}\n w: ${focus_zone_width}\n h: ${focus_zone_height}\n aspect_ratio: ${focus_zone_width / focus_zone_height}\n\n`;
 
     let particle_status_string = "";
     particle_status_string = `particles:\n ${particle_pool.poolStatusString()}\n\n`;
