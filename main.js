@@ -53,7 +53,7 @@ function setup() {
         let particleIsReadyForReuse = particle.is_dead;
         return particleIsReadyForReuse;
     });
-    particle_pool.preAllocate(600);
+    particle_pool.preAllocate(1000);
 
     // Entry ray points
     entry_ray_start_point = createVector(0, 0);
@@ -219,14 +219,14 @@ function draw_particles() {
 
     let should_activate_new_particle = random() > 0.1;
     if (should_activate_new_particle) {
-        let particles_to_create = 2;
+        let particles_to_create = 4;
         for (let particle_index = 0; particle_index < particles_to_create; particle_index++) {
             particle_pool.activateNewParticle((particle) => {
                 const random_amount = random();
                 const start_point = p5.Vector.lerp(particle_start_zone_top, particle_start_zone_bottom, random_amount);
                 const end_point = p5.Vector.lerp(particle_end_zone_top, particle_end_zone_bottom, random_amount);
                 const distance_to_end_point = end_point.x - start_point.x;
-                const time_to_reach_end_point = 5000;  // Milliseconds
+                const time_to_reach_end_point = 4000;  // Milliseconds
 
                 particle.position = start_point;
                 particle.velocity = p5.Vector.sub(end_point, start_point);
@@ -241,6 +241,7 @@ function draw_particles() {
                 //particle.headingSpread = randomGaussian(0, 0.02) * PI / 30000;  // Subtle taper at the end
                 particle.headingSpread = randomGaussian(0, PI / 24) / 20000;  // Subtle taper at the end
                 particle.headingSpread = randomGaussian(0, PI / 30) / 20000;  // Subtle taper at the end
+                particle.headingSpread = randomGaussian(0, PI / 52) / 7500;  // Subtle taper at the end
                 //particle.headingSpread = randomGaussian(0, 0.02) * PI / 2000;   // Like confetti blowing around a fan
             });
         }
