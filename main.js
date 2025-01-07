@@ -22,6 +22,7 @@ let particle_end_zone_top;
 const reference_width = 1900;
 const reference_height = 500;
 const reference_aspect_ratio = reference_width / reference_height;
+const minimum_aspect_ratio = 8 / 3;
 
 // Focus zone
 let focus_zone_x = 0;
@@ -101,21 +102,24 @@ function canvas_updated() {
     const canvas_center_y = height / 2;
 
     // Focus zone
-    const landscapeOrientation = (width / height > reference_aspect_ratio);
-    if (landscapeOrientation) {
-        focus_zone_width = round(height * reference_aspect_ratio);
+    // TODO: There's some more work to do on the math in this section.
+    const focus_zone_aspect_ratio = max(width / height, minimum_aspect_ratio);
+
+    const landscape_orientation = (width / height > reference_aspect_ratio);
+    if (landscape_orientation) {
+        focus_zone_width = round(height * focus_zone_aspect_ratio);
         focus_zone_height = height;
         focus_zone_x = round((width - focus_zone_width) / 2.0);
         focus_zone_y = 0;
-        scale_factor = focus_zone_height / reference_height;
     }
     else {
         focus_zone_width = width;
-        focus_zone_height = round(width / reference_aspect_ratio);
+        focus_zone_height = round(width / focus_zone_aspect_ratio);
         focus_zone_x = 0;
         focus_zone_y = round((height - focus_zone_height) / 2.0);
-        scale_factor = focus_zone_width / reference_width;
     }
+
+    scale_factor = focus_zone_height / reference_height;
 
     // Prism
     const prism_height = focus_zone_height / 2;
@@ -153,7 +157,7 @@ function canvas_updated() {
     // Particle end zone
     // (Where the particles head towards)
     const particle_end_zone_height = prism.height * 0.4;
-    const particle_end_zone_x = width;
+    const particle_end_zone_x = focus_zone_x + focus_zone_width;
     const particle_end_zone_center_y = prism.center_y + prism_height * 0.3;
 
     particle_end_zone_top.x = particle_end_zone_x;
@@ -221,14 +225,16 @@ function draw_particles() {
                 const random_amount = random();
                 const start_point = p5.Vector.lerp(particle_start_zone_top, particle_start_zone_bottom, random_amount);
                 const end_point = p5.Vector.lerp(particle_end_zone_top, particle_end_zone_bottom, random_amount);
+                const distance_to_end_point = end_point.x - start_point.x;
+                const time_to_reach_end_point = 5000;  // Milliseconds
 
                 particle.position = start_point;
                 particle.velocity = p5.Vector.sub(end_point, start_point);
-                particle.velocity.setMag(random(2.9, 3.9) * scale_factor);
-                particle.target_color = color(random_amount * 255, 255, 128);;
+                particle.velocity.setMag(distance_to_end_point / time_to_reach_end_point);
+                particle.target_color = color(random_amount * 255, 255, 128);
                 particle.fadeout_duration = random(800, 1200) * scale_factor;
                 particle.cooldown_duration = random(900, 1300) * scale_factor;
-                particle.max_age = random(4500, 6000) * scale_factor;
+                particle.max_age = random(0.8, 1.0) * time_to_reach_end_point;
                 particle.birth_time = millis();
     
                 //particle.headingSpread = 0;                                     // Perfect lines
@@ -287,7 +293,7 @@ function display_debug_info() {
     window_dimensions_string = `window:\n w: ${width}\n h: ${height}\n\n`;
 
     let focus_zone_string = "";
-    focus_zone_string = `focus zone:\n x: ${focus_zone_x}\n y: ${focus_zone_y}\n w: ${focus_zone_width}\n h: ${focus_zone_height}\n\n`;
+    focus_zone_string = `focus zone:\n x: ${focus_zone_x}\n y: ${focus_zone_y}\n w: ${focus_zone_width}\n h: ${focus_zone_height}\n aspect_ratio: ${focus_zone_width / focus_zone_height}\n\n`;
 
     let particle_status_string = "";
     particle_status_string = `particles:\n ${particle_pool.poolStatusString()}\n\n`;
@@ -368,6 +374,10 @@ class Particle {
         //this.birth_time = millis();
 
         this.friction = 0.11;
+        this.friction = 0;
+
+        // Allocated once here and reused in update() to avoid costly allocations per frame
+        this.velocity_step = createVector(1, 1);
     }
 
     update() {
@@ -376,9 +386,13 @@ class Particle {
         frictionVelocityDelta = max(frictionVelocityDelta, 0);
         this.velocity.setMag(this.velocity.mag() - frictionVelocityDelta);
 
+        // Adjust heading over time
         this.velocity.setHeading(this.velocity.heading() + (this.headingSpread * this.age * 0.07));
-        
-        this.position.add(this.velocity);
+
+        // Adjust position based on velocity 
+        this.velocity_step.setHeading(this.velocity.heading());
+        this.velocity_step.setMag(this.velocity.mag() * deltaTime);
+        this.position.add(this.velocity_step);
     }
 
     draw() {
